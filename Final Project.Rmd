@@ -1,0 +1,24 @@
+---
+title: "Bank"
+output: html_document
+date: "2025-05-12"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+df <- read.csv("student-por.csv", sep=";", header=TRUE, stringsAsFactors=FALSE)
+```
+1. a) Top 5 features in order are G2 (second period grade), G1 (first period grade), Absences (number of school absences), Failures (number of past class failures), and Medu (mother's education)
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+quantitative_df <- df[, sapply(df, is.numeric)]
+library(Boruta)
+boruta <- Boruta(G3 ~ ., data=quantitative_df, doTrace=1, maxRuns=100)
+stats <- attStats(boruta)
+top5 <- head(stats[order(-stats$medianImp), ], 5)
+print(boruta)
+par(mar=c(12,4,4,2))
+plot(boruta, las = 2, cex.axis = 0.7)
+```
+1. b) 
+
