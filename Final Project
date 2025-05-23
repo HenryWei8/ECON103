@@ -1,0 +1,55 @@
+---
+title: "Bank"
+output: html_document
+date: "2025-05-12"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+df <- read.csv("student-por.csv", sep=";", header=TRUE, stringsAsFactors=FALSE)
+```
+1. a) Top 4 features in order are G2 (second period grade), G1 (first period grade), Absences (number of school absences), and Failures (number of past class failures)
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+quantitative_df <- df[, sapply(df, is.numeric)]
+library(Boruta)
+boruta <- Boruta(G3 ~ ., data=quantitative_df, doTrace=1, maxRuns=100)
+stats <- attStats(boruta)
+top5 <- head(stats[order(-stats$medianImp), ], 5)
+print(boruta)
+par(mar=c(12,4,4,2))
+plot(boruta, las = 2, cex.axis = 0.7)
+```
+1. b) 
+```{r}
+df$G3 <- factor(df$G3)
+
+# 2. List your six predictor columns and ensure they’re factors
+cols <- c("higher", "romantic", "Medu", "Fedu", "age", "sex")
+df[cols] <- lapply(df[cols], factor)
+
+# 3. Compute χ² p-values of each predictor vs. G3
+pvals <- sapply(cols, function(v) {
+  tbl  <- table(df[[v]], df$G3)
+  test <- suppressWarnings(
+    chisq.test(tbl, simulate.p.value = TRUE)
+  )
+  test$p.value
+}, USE.NAMES = TRUE)
+
+# 4. Sort ascending (smallest p = strongest association)
+pvals_sorted <- sort(pvals)
+print(pvals_sorted)
+```
+2. a) 
+```{r}
+hist(df$G2,vmain="Histogram of G2",xlab="G2")
+hist(df$G1,main="Histogram of G1",xlab="G1")
+hist(df$absences,main="Histogram of Absences",xlab="absences")
+hist(df$failures,main="Histogram of Failures",xlab="failures")
+qqnorm(df$G2,main="Normal QQ‐plot of G2");qqline(df$G2)
+qqnorm(df$G1,main="Normal QQ‐plot of G1");qqline(df$G1)
+qqnorm(df$absences,main="Normal QQ‐plot of Absences");qqline(df$absences)
+qqnorm(df$failures,main="Normal QQ‐plot of Failures");qqline(df$failures)
+pairs(df[, vars],panel=panel.smooth)
+```
